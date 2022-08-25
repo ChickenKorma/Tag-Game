@@ -6,6 +6,10 @@ using UnityEngine.TextCore.Text;
 
 public class SeekState : BaseState
 {
+    private Transform previousNearestCharacter;
+
+    private Vector3 previousPosition;
+
     public override void EnterState(StateMachine stateMachine, AIController character)
     {
 
@@ -18,8 +22,24 @@ public class SeekState : BaseState
             stateMachine.SwitchState(stateMachine.FleeState);
         }
 
-        Vector2 direction = NearestCharacter(character.transform).position - character.transform.position;
-        character.Move(direction);
+        Transform newNearestCharacter = NearestCharacter(character.transform);
+
+        Vector2 target = newNearestCharacter.position;
+
+        if(previousNearestCharacter == newNearestCharacter)
+        {
+            Vector2 predictedDirection = (newNearestCharacter.position - previousPosition).normalized;
+
+            float predictionTime = stateMachine.MaxPredictionTime * Mathf.Clamp(Vector3.Distance(newNearestCharacter.position, character.transform.position) / stateMachine.MaxPredictionDistance, 0, 1);
+
+            target = newNearestCharacter.position.ConvertTo<Vector2>() + (predictedDirection * predictionTime);
+        }
+
+        previousNearestCharacter = newNearestCharacter;
+        previousPosition = newNearestCharacter.position;
+
+        Vector2 moveDirection = target - character.transform.position.ConvertTo<Vector2>();
+        character.Move(moveDirection);
     }
 
     public override void ExitState(StateMachine stateMachine, AIController character)

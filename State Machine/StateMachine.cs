@@ -16,11 +16,21 @@ public class StateMachine : MonoBehaviour
 
     private AIController character;
 
-    [SerializeField] private float raycastLength;
-    [SerializeField] private float avoidanceStrength;
+    [SerializeField] private float forwardRaycastLength;
+    [SerializeField] private float sideRaycastLength;
+    [SerializeField] private float forwardAvoidanceStrength;
+    [SerializeField] private float sideAvoidanceStrength;   
 
-    public float RaycastLength { get { return raycastLength; } }
-    public float AvoidanceStrength { get { return avoidanceStrength; } }
+    public float ForwardRaycastLength { get { return forwardRaycastLength; } }
+    public float SideRaycastLength { get { return sideRaycastLength; } }
+    public float ForwardAvoidanceStrength { get { return forwardAvoidanceStrength; } }
+    public float SideAvoidanceStrength { get { return sideAvoidanceStrength; } }   
+
+    [SerializeField] private float maxPredictionTime;
+    [SerializeField] private float maxPredictionDistance;
+
+    public float MaxPredictionTime { get { return maxPredictionTime; } }
+    public float MaxPredictionDistance { get { return maxPredictionDistance; } }
 
     [SerializeField] private LayerMask wallLayer;
 

@@ -25,15 +25,31 @@ public class FleeState : BaseState
 
         if (GameManager.Instance.Tagged)
         {
-            Vector2 direction = character.transform.position - GameManager.Instance.Tagged.position;
+            Vector3 characterPosition = character.transform.position;
 
-            RaycastHit2D hit = Physics2D.Raycast(character.transform.position, direction, stateMachine.RaycastLength);
+            Vector2 direction = (characterPosition - GameManager.Instance.Tagged.position).normalized;
+            RaycastHit2D forwardHit = Physics2D.Raycast(characterPosition, direction, stateMachine.ForwardRaycastLength, stateMachine.WallLayer);
+
+            Vector2 rightDirection = new Vector2(direction.y, direction.x * -1.0f).normalized;
+            RaycastHit2D rightHit = Physics2D.Raycast(characterPosition, rightDirection, stateMachine.SideRaycastLength, stateMachine.WallLayer);
+
+            Vector2 leftDirection = new Vector2(direction.y * -1.0f, direction.x).normalized;
+            RaycastHit2D leftHit = Physics2D.Raycast(characterPosition, leftDirection, stateMachine.SideRaycastLength, stateMachine.WallLayer);
 
             Vector2 avoidance = Vector2.zero;
 
-            if (hit)
+            if (forwardHit)
             {
-                avoidance = hit.normal * stateMachine.AvoidanceStrength;
+                avoidance = forwardHit.normal * stateMachine.ForwardAvoidanceStrength;
+            }
+
+            if (rightHit)
+            {
+                avoidance += leftDirection * stateMachine.SideAvoidanceStrength;
+            }
+            else if (leftHit)
+            {
+                avoidance += rightDirection * stateMachine.SideAvoidanceStrength;
             }
 
             direction += avoidance;

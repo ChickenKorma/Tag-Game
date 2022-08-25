@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class BaseController : MonoBehaviour
 {
-    private const float waitTime = 0.5f;
+    private const float waitTime = 1f;
 
     [SerializeField] private float speed;
     [SerializeField] private float maxHealth;
@@ -84,9 +84,9 @@ public class BaseController : MonoBehaviour
         } 
     }
 
-    private void OnCollisionEnter2D(Collision2D collision)
+    private void OnCollisionStay2D(Collision2D collision)
     {
-        if(!frozen && tagged && collision.transform.CompareTag("Character"))
+        if (!frozen && tagged && collision.transform.CompareTag("Character"))
         {
             collision.transform.GetComponent<BaseController>().Tag(true);
 
