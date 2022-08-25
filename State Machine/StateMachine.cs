@@ -16,6 +16,7 @@ public class StateMachine : MonoBehaviour
 
     private AIController character;
 
+    [Header("Raycasts")]
     [SerializeField] private float forwardRaycastLength;
     [SerializeField] private float sideRaycastLength;
     [SerializeField] private float forwardAvoidanceStrength;
@@ -24,13 +25,27 @@ public class StateMachine : MonoBehaviour
     public float ForwardRaycastLength { get { return forwardRaycastLength; } }
     public float SideRaycastLength { get { return sideRaycastLength; } }
     public float ForwardAvoidanceStrength { get { return forwardAvoidanceStrength; } }
-    public float SideAvoidanceStrength { get { return sideAvoidanceStrength; } }   
+    public float SideAvoidanceStrength { get { return sideAvoidanceStrength; } }
 
+    [Header("Predictions")]
     [SerializeField] private float maxPredictionTime;
     [SerializeField] private float maxPredictionDistance;
 
     public float MaxPredictionTime { get { return maxPredictionTime; } }
     public float MaxPredictionDistance { get { return maxPredictionDistance; } }
+
+    [Header("Wandering")]
+    [SerializeField] private float wanderRate;
+    [SerializeField] private float maxWanderAngle;
+    [SerializeField] private float changeWanderTime;
+    [SerializeField] private float minWanderChange;
+    [SerializeField] private float maxWanderChange;
+
+    public float WanderRate { get { return wanderRate; } }
+    public float MaxWanderAngle { get { return maxWanderAngle; } }
+    public float ChangeWanderTime { get { return changeWanderTime; } }
+    public float MinWanderChange { get { return minWanderChange; } }
+    public float MaxWanderChange { get { return maxWanderChange; } }
 
     [SerializeField] private LayerMask wallLayer;
 
