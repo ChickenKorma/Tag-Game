@@ -4,9 +4,11 @@ using UnityEngine;
 
 public class BaseController : MonoBehaviour
 {
-    private const float waitTime = 1f;
+    private const float taggedPauseTime = 1f;
 
-    [SerializeField] private float speed;
+    private float speed;
+    [SerializeField] private float minSpeed;
+    [SerializeField] private float maxSpeed;
     [SerializeField] private float maxHealth;
     private float health;
 
@@ -31,12 +33,12 @@ public class BaseController : MonoBehaviour
     public Color NormalColor { get { return normalColor; } set { normalColor = value; } }
     public Color TagColor { get { return tagColor; } set { tagColor = value; } }
 
-    private void OnEnable()
+    protected virtual void OnEnable()
     {
         GameManager.gameEndEvent += GameEnd;
     }
 
-    private void OnDisable()
+    protected virtual void OnDisable()
     {
         GameManager.gameEndEvent -= GameEnd;
     }
@@ -53,6 +55,7 @@ public class BaseController : MonoBehaviour
 
     private void Start()
     {
+        speed = minSpeed;
         health = maxHealth;
     }
 
@@ -62,9 +65,13 @@ public class BaseController : MonoBehaviour
         {
             health -= Time.deltaTime;
 
+            speed = Mathf.Clamp(minSpeed + ((maxSpeed - minSpeed) * (1 - (health / maxHealth))), minSpeed, maxSpeed);
+
             if(health <= 0)
             {
                 frozen = true;
+
+                GameManager.gameEndEvent -= GameEnd;
 
                 GameManager.Instance.KillCharacter(transform);
 
@@ -80,7 +87,9 @@ public class BaseController : MonoBehaviour
         {
             Vector2 movement = Vector2.ClampMagnitude(direction, 1) * speed * Time.fixedDeltaTime;
 
-            rb.MovePosition(rb.position + movement);
+            Vector2 newPosition = Vector2.Lerp(rb.position, rb.position + movement, 0.9f);
+
+            rb.MovePosition(newPosition);
         } 
     }
 
@@ -88,7 +97,7 @@ public class BaseController : MonoBehaviour
     {
         if (!frozen && tagged && collision.transform.CompareTag("Character"))
         {
-            collision.transform.GetComponent<BaseController>().Tag(true);
+            collision.transform.GetComponent<BaseController>().Tag();
 
             tagged = false;
 
@@ -98,17 +107,14 @@ public class BaseController : MonoBehaviour
 
     // Called when the tagged character collides with this character
     // Tags this character and pauses them
-    public void Tag(bool pauseMovement)
+    public void Tag(float pauseTime = taggedPauseTime)
     {
         tagged = true;
         GameManager.Instance.Tagged = transform;
 
         spriteRenderer.color = tagColor;
 
-        if (pauseMovement)
-        {
-            StartCoroutine(PauseMovement(waitTime));
-        }
+        StartCoroutine(PauseMovement(pauseTime));
     }
 
     // Pauses the ability to move for the length of waitTime

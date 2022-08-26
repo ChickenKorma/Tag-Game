@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class UIManager : MonoBehaviour
 {
@@ -14,9 +14,6 @@ public class UIManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI winText;
 
     [SerializeField] private GameObject healthbarPrefab;
-
-    private List<(Slider, Transform)> healthbars = new();
-
 
     private void OnEnable()
     {
@@ -62,5 +59,15 @@ public class UIManager : MonoBehaviour
         gameEnd.enabled = true;
 
         winText.text = "Winner: " + winner.name;
+    }
+
+    public void RestartGame()
+    {
+        SceneManager.LoadScene(1);
+    }
+
+    public void MainMenu()
+    {
+        SceneManager.LoadScene(0);
     }
 }

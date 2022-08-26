@@ -8,6 +8,8 @@ public class FleeState : BaseState
     private float wanderAngle;
     private float lastWanderChange;
 
+    private Vector2 centeringTarget;
+
     public override void EnterState(StateMachine stateMachine, AIController character)
     {
         wanderAngle = 0;
@@ -30,13 +32,14 @@ public class FleeState : BaseState
         if (GameManager.Instance.Tagged)
         {
             Vector3 characterPosition = character.transform.position;
+            Vector3 taggedPosition = GameManager.Instance.Tagged.position;
 
-            Vector2 taggedDirection = characterPosition - GameManager.Instance.Tagged.position;
+            Vector2 taggedDirection = characterPosition - taggedPosition;
             Vector2 adjustedDirection = (Quaternion.Euler(0, 0, wanderAngle) * taggedDirection).normalized;
 
             wanderAngle += Random.Range(-stateMachine.WanderRate, stateMachine.WanderRate) * Time.deltaTime;
 
-            if (Time.time > lastWanderChange + stateMachine.ChangeWanderTime)
+            if (Time.time > lastWanderChange + (stateMachine.ChangeWanderTime * Random.Range(0.9f, 1.1f)))
             {
                 wanderAngle *= Random.Range(stateMachine.MaxWanderChange, stateMachine.MinWanderChange);
 
@@ -73,11 +76,16 @@ public class FleeState : BaseState
                 avoidance += (Random.Range(-1, 1) < 0 ? leftDirection : rightDirection) * stateMachine.SideAvoidanceStrength * 0.5f;
             }
 
-            adjustedDirection += avoidance;
+            Vector3 normalizedTaggedPosition = -taggedPosition.normalized;
+            Vector2 newCenteringTarget = new Vector2(normalizedTaggedPosition.x * Random.Range(1 - stateMachine.CenteringRandomness, 1 + stateMachine.CenteringRandomness), normalizedTaggedPosition.y * Random.Range(1 - stateMachine.CenteringRandomness, 1 + stateMachine.CenteringRandomness)).normalized;
+            newCenteringTarget *= Random.Range(5, 6.5f);
+            centeringTarget = Vector2.Lerp(centeringTarget, newCenteringTarget, 0.5f);
 
-            character.Move(adjustedDirection);
+            float centeringBias = stateMachine.MaxCenteringBias * Mathf.Clamp((taggedDirection.magnitude - stateMachine.MinCenteringDistance) / stateMachine.MaxCenteringBias, 0, 1);
+            Vector2 centering = (centeringTarget - characterPosition.ConvertTo<Vector2>()).normalized * centeringBias;
+
+            character.Move(adjustedDirection + avoidance + centering);
         }
-
     }
 
     public override void ExitState(StateMachine stateMachine, AIController character)

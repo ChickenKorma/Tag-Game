@@ -27,6 +27,8 @@ public class StateMachine : MonoBehaviour
     public float ForwardAvoidanceStrength { get { return forwardAvoidanceStrength; } }
     public float SideAvoidanceStrength { get { return sideAvoidanceStrength; } }
 
+    [SerializeField] private LayerMask wallLayer;
+
     [Header("Predictions")]
     [SerializeField] private float maxPredictionTime;
     [SerializeField] private float maxPredictionDistance;
@@ -47,7 +49,16 @@ public class StateMachine : MonoBehaviour
     public float MinWanderChange { get { return minWanderChange; } }
     public float MaxWanderChange { get { return maxWanderChange; } }
 
-    [SerializeField] private LayerMask wallLayer;
+    [Header("Misc")]
+    [SerializeField] private float maxCenteringBias;
+    [SerializeField] private float maxCenteringDistance;
+    [SerializeField] private float minCenteringDistance;
+    [SerializeField] private float centeringRandomness;
+   
+    public float MaxCenteringBias { get { return maxCenteringBias; } }
+    public float MaxCenteringDistance { get { return maxCenteringDistance; } }
+    public float MinCenteringDistance { get { return minCenteringDistance; } }
+    public float CenteringRandomness { get { return centeringRandomness; } }
 
     public LayerMask WallLayer { get { return wallLayer; } }
 

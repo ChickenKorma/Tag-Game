@@ -26,7 +26,7 @@ public class GameManager : MonoBehaviour
 
     private List<Transform> activePickups = new();
     private List<Transform> visibleCharacters = new();
-    private List<Transform> remainingCharacters = new();  
+    [SerializeField] private List<Transform> remainingCharacters = new();  
 
     public List<Transform> ActivePickups { get { return activePickups; } }
     public List<Transform> VisibleCharacters { get { return visibleCharacters; } }
@@ -129,14 +129,9 @@ public class GameManager : MonoBehaviour
     // Randomly picks the next tagged character from the remaining characters list
     private void PickTagged()
     {
-        foreach (Transform character in remainingCharacters)
-        {
-            StartCoroutine(character.GetComponent<BaseController>().PauseMovement(tagPickTime));
-        }
-
         int chosenIndex = UnityEngine.Random.Range(0, remainingCharacters.Count);
 
-        remainingCharacters[chosenIndex].GetComponent<BaseController>().Tag(false);
+        remainingCharacters[chosenIndex].GetComponent<BaseController>().Tag(tagPickTime);
     }
 
     // Spawn the next pickup prefab and add it to the active pickup list

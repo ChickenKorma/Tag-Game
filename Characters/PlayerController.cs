@@ -22,8 +22,10 @@ public class PlayerController : BaseController
         base.Awake();
     }
 
-    private void OnEnable()
+    protected override void OnEnable()
     {
+        base.OnEnable();
+
         playerInputActions = new PlayerInputActions();
         playerInputActions.Enable();
     }
@@ -33,8 +35,10 @@ public class PlayerController : BaseController
         Move(playerInputActions.Gameplay.Move.ReadValue<Vector2>());
     }
 
-    private void OnDisable()
+    protected override void OnDisable()
     {
+        base.OnDisable();
+
         playerInputActions.Disable();
     }
 }
