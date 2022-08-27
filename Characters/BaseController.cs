@@ -12,7 +12,6 @@ public class BaseController : MonoBehaviour
     [SerializeField] private float maxHealth;
     private float health;
 
-    public float Speed { get { return speed; } set { speed = value; } }
     public float MaxHealth { get { return health; } }
     public float Health { get { return health; } set { health = value; } }
 
@@ -27,11 +26,8 @@ public class BaseController : MonoBehaviour
 
     private SpriteRenderer spriteRenderer;
 
-    private Color normalColor;
-    private Color tagColor;
-
-    public Color NormalColor { get { return normalColor; } set { normalColor = value; } }
-    public Color TagColor { get { return tagColor; } set { tagColor = value; } }
+    [SerializeField] private Color normalColor;
+    [SerializeField] private Color tagColor;
 
     protected virtual void OnEnable()
     {
@@ -48,9 +44,7 @@ public class BaseController : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
 
         spriteRenderer = GetComponentInChildren<SpriteRenderer>();
-
-        normalColor = spriteRenderer.color;
-        tagColor = Color.black;
+        spriteRenderer.color = normalColor;
     }
 
     private void Start()
@@ -81,13 +75,13 @@ public class BaseController : MonoBehaviour
     }
 
     // Given the character is not frozen, moves the rigidbody by the input direction, scaled by speed and made frame rate independent
-    public void Move(Vector2 direction)
+    public void Move(Vector3 direction)
     {
         if (!frozen)
         {
-            Vector2 movement = Vector2.ClampMagnitude(direction, 1) * speed * Time.fixedDeltaTime;
+            Vector2 movement = Vector3.ClampMagnitude(direction, 1) * speed * Time.fixedDeltaTime;
 
-            Vector2 newPosition = Vector2.Lerp(rb.position, rb.position + movement, 0.9f);
+            Vector3 newPosition = Vector3.Lerp(rb.position, rb.position + movement, 0.9f);
 
             rb.MovePosition(newPosition);
         } 
@@ -132,11 +126,5 @@ public class BaseController : MonoBehaviour
     {
         frozen = true;
         tagged = false;
-    }
-
-    // Updates the sprite renderer color in order for invisibility powerup to work
-    public void UpdateColor()
-    {
-        spriteRenderer.color = tagged ? tagColor : normalColor;
     }
 }

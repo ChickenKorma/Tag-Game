@@ -13,23 +13,16 @@ public class GameManager : MonoBehaviour
 
     public Transform Tagged { get { return tagged; } set { tagged = value; } }
 
-    [SerializeField] private GameObject[] pickupPrefabs;
     [SerializeField] private GameObject characterPrefab; 
 
-    [SerializeField] private int pickupSpawnIndex;
-    [SerializeField] private int totalPickups;
     [SerializeField] private int totalCharacters;
 
     [SerializeField] private Vector2 spawnArea;
 
     [SerializeField] private float tagPickTime;
 
-    private List<Transform> activePickups = new();
-    private List<Transform> visibleCharacters = new();
     [SerializeField] private List<Transform> remainingCharacters = new();  
 
-    public List<Transform> ActivePickups { get { return activePickups; } }
-    public List<Transform> VisibleCharacters { get { return visibleCharacters; } }
     public List<Transform> RemainingCharacters { get { return remainingCharacters; } }
 
     private void Awake()
@@ -43,13 +36,7 @@ public class GameManager : MonoBehaviour
             Instance = this;
         }
 
-        for (int i = 0; i < totalPickups; i++)
-        {
-            SpawnPickup();
-        }
-
         remainingCharacters.Add(PlayerController.Instance.transform);
-        visibleCharacters.Add(PlayerController.Instance.transform);
 
         SpawnCharacters();
 
@@ -65,11 +52,11 @@ public class GameManager : MonoBehaviour
 
         for (int i = 0; i < totalCharacters; i++)
         {
-            Vector2 spawnPoint = new(UnityEngine.Random.Range(-spawnArea.x, spawnArea.x), UnityEngine.Random.Range(-spawnArea.y, spawnArea.y));
+            Vector2 spawnPoint = new Vector2(UnityEngine.Random.Range(-spawnArea.x, spawnArea.x), UnityEngine.Random.Range(-spawnArea.y, spawnArea.y));
 
             while(!SpawnPointValid(spawnPoint, spawnPoints))
             {
-                spawnPoint = new(UnityEngine.Random.Range(-spawnArea.x, spawnArea.x), UnityEngine.Random.Range(-spawnArea.y, spawnArea.y));
+                spawnPoint = new Vector2(UnityEngine.Random.Range(-spawnArea.x, spawnArea.x), UnityEngine.Random.Range(-spawnArea.y, spawnArea.y));
             }
 
             spawnPoints.Add(spawnPoint);
@@ -77,7 +64,6 @@ public class GameManager : MonoBehaviour
             Transform spawnedCharacter = Instantiate(characterPrefab, spawnPoint, Quaternion.identity).transform;
 
             remainingCharacters.Add(spawnedCharacter);
-            visibleCharacters.Add(spawnedCharacter);
         }
     }
 
@@ -99,7 +85,6 @@ public class GameManager : MonoBehaviour
     public void KillCharacter(Transform character)
     {
         remainingCharacters.Remove(character);
-        visibleCharacters.Remove(character);
 
         if(remainingCharacters.Count > 1)
         {
@@ -111,45 +96,11 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // Removes character from visible list
-    public void HideCharacter(Transform character)
-    {
-        visibleCharacters.Remove(character);
-    }
-
-    // Adds character to visible list if it isn't already
-    public void ShowCharacter(Transform character)
-    {
-        if (!visibleCharacters.Contains(character))
-        {
-            visibleCharacters.Add(character);
-        }
-    }
-
     // Randomly picks the next tagged character from the remaining characters list
     private void PickTagged()
     {
         int chosenIndex = UnityEngine.Random.Range(0, remainingCharacters.Count);
 
         remainingCharacters[chosenIndex].GetComponent<BaseController>().Tag(tagPickTime);
-    }
-
-    // Spawn the next pickup prefab and add it to the active pickup list
-    private void SpawnPickup()
-    {
-        Vector2 spawnPoint = new(UnityEngine.Random.Range(-spawnArea.x, spawnArea.x), UnityEngine.Random.Range(-spawnArea.y, spawnArea.y));
-
-        Transform spawnedPickup = Instantiate(pickupPrefabs[pickupSpawnIndex], spawnPoint, Quaternion.identity).transform;
-        activePickups.Add(spawnedPickup);
-
-        pickupSpawnIndex = (pickupSpawnIndex + 1) % pickupPrefabs.Length;
-    }
-
-    // Remove pickup from the active pickup list and spawns new pickup
-    public void RemovePickup(Transform pickup)
-    {
-        activePickups.Remove(pickup);
-
-        SpawnPickup();
     }
 }

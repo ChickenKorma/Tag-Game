@@ -8,13 +8,11 @@ public class StateMachine : MonoBehaviour
 
     private SeekState seekState = new();
     private FleeState fleeState = new();
-    private PickupState pickupState = new();
 
     public SeekState SeekState { get { return seekState; } }
     public FleeState FleeState { get { return fleeState; } }
-    public PickupState PickupState { get { return pickupState; } }
 
-    private AIController character;
+    private BaseController character;
 
     [Header("Raycasts")]
     [SerializeField] private float forwardRaycastLength;
@@ -64,7 +62,7 @@ public class StateMachine : MonoBehaviour
 
     void Start()
     {
-        character = GetComponent<AIController>();
+        character = GetComponent<BaseController>();
 
         currentState = fleeState;
         currentState.EnterState(this, character);

@@ -10,12 +10,12 @@ public class SeekState : BaseState
 
     private Vector3 previousPosition;
 
-    public override void EnterState(StateMachine stateMachine, AIController character)
+    public override void EnterState(StateMachine stateMachine, BaseController character)
     {
 
     }
 
-    public override void UpdateState(StateMachine stateMachine, AIController character)
+    public override void UpdateState(StateMachine stateMachine, BaseController character)
     {
         if (!character.Tagged)
         {
@@ -24,25 +24,25 @@ public class SeekState : BaseState
 
         Transform newNearestCharacter = NearestCharacter(character.transform);
 
-        Vector2 target = newNearestCharacter.position;
+        Vector3 target = newNearestCharacter.position;
 
         if(previousNearestCharacter == newNearestCharacter)
         {
-            Vector2 predictedDirection = (newNearestCharacter.position - previousPosition).normalized;
+            Vector3 predictedDirection = (newNearestCharacter.position - previousPosition).normalized;
 
             float predictionTime = stateMachine.MaxPredictionTime * Mathf.Clamp(Vector3.Distance(newNearestCharacter.position, character.transform.position) / stateMachine.MaxPredictionDistance, 0, 1);
 
-            target = newNearestCharacter.position.ConvertTo<Vector2>() + (predictedDirection * predictionTime);
+            target = newNearestCharacter.position + (predictedDirection * predictionTime);
         }
 
         previousNearestCharacter = newNearestCharacter;
         previousPosition = newNearestCharacter.position;
 
-        Vector2 moveDirection = target - character.transform.position.ConvertTo<Vector2>();
+        Vector3 moveDirection = target - character.transform.position;
         character.Move(moveDirection);
     }
 
-    public override void ExitState(StateMachine stateMachine, AIController character)
+    public override void ExitState(StateMachine stateMachine, BaseController character)
     {
 
     }
@@ -53,15 +53,15 @@ public class SeekState : BaseState
 
         float nearestSqrDistance = Mathf.Infinity;
 
-        foreach(Transform visibleCharacter in GameManager.Instance.VisibleCharacters)
+        foreach(Transform otherCharacter in GameManager.Instance.RemainingCharacters)
         {
-            if (!visibleCharacter.Equals(thisCharacter))
+            if (!otherCharacter.Equals(thisCharacter))
             {
-                float sqrDistance = Vector3.SqrMagnitude(thisCharacter.position - visibleCharacter.position);
+                float sqrDistance = Vector3.SqrMagnitude(thisCharacter.position - otherCharacter.position);
 
                 if (sqrDistance < nearestSqrDistance)
                 {
-                    nearest = visibleCharacter;
+                    nearest = otherCharacter;
 
                     nearestSqrDistance = sqrDistance;
                 }

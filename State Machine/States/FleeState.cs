@@ -8,34 +8,28 @@ public class FleeState : BaseState
     private float wanderAngle;
     private float lastWanderChange;
 
-    private Vector2 centeringTarget;
+    private Vector3 centeringTarget;
 
-    public override void EnterState(StateMachine stateMachine, AIController character)
+    public override void EnterState(StateMachine stateMachine, BaseController character)
     {
         wanderAngle = 0;
         lastWanderChange = Time.time;
     }
 
-    public override void UpdateState(StateMachine stateMachine, AIController character)
+    public override void UpdateState(StateMachine stateMachine, BaseController character)
     {
         if (character.Tagged)
         {
             stateMachine.SwitchState(stateMachine.SeekState);
         }
-        /*
-        else if (Vector2.SqrMagnitude(character.transform.position - GameManager.Instance.tagged.position) > character.NearestPickupSqrDistance)
-        {
-            stateMachine.SwitchState(stateMachine.PickupState);
-        }
-        */
 
         if (GameManager.Instance.Tagged)
         {
             Vector3 characterPosition = character.transform.position;
             Vector3 taggedPosition = GameManager.Instance.Tagged.position;
 
-            Vector2 taggedDirection = characterPosition - taggedPosition;
-            Vector2 adjustedDirection = (Quaternion.Euler(0, 0, wanderAngle) * taggedDirection).normalized;
+            Vector3 taggedDirection = characterPosition - taggedPosition;
+            Vector3 adjustedDirection = (Quaternion.Euler(0, 0, wanderAngle) * taggedDirection).normalized;
 
             wanderAngle += Random.Range(-stateMachine.WanderRate, stateMachine.WanderRate) * Time.deltaTime;
 
@@ -50,13 +44,13 @@ public class FleeState : BaseState
 
             RaycastHit2D forwardHit = Physics2D.Raycast(characterPosition, adjustedDirection, stateMachine.ForwardRaycastLength, stateMachine.WallLayer);
 
-            Vector2 rightDirection = new Vector2(adjustedDirection.y, adjustedDirection.x * -1.0f).normalized;
+            Vector3 rightDirection = new Vector3(adjustedDirection.y, adjustedDirection.x * -1.0f).normalized;
             RaycastHit2D rightHit = Physics2D.Raycast(characterPosition, rightDirection, stateMachine.SideRaycastLength, stateMachine.WallLayer);
 
-            Vector2 leftDirection = new Vector2(adjustedDirection.y * -1.0f, adjustedDirection.x).normalized;
+            Vector3 leftDirection = new Vector3(adjustedDirection.y * -1.0f, adjustedDirection.x).normalized;
             RaycastHit2D leftHit = Physics2D.Raycast(characterPosition, leftDirection, stateMachine.SideRaycastLength, stateMachine.WallLayer);
 
-            Vector2 avoidance = Vector2.zero;
+            Vector3 avoidance = Vector3.zero;
 
             if (forwardHit)
             {
@@ -77,18 +71,18 @@ public class FleeState : BaseState
             }
 
             Vector3 normalizedTaggedPosition = -taggedPosition.normalized;
-            Vector2 newCenteringTarget = new Vector2(normalizedTaggedPosition.x * Random.Range(1 - stateMachine.CenteringRandomness, 1 + stateMachine.CenteringRandomness), normalizedTaggedPosition.y * Random.Range(1 - stateMachine.CenteringRandomness, 1 + stateMachine.CenteringRandomness)).normalized;
-            newCenteringTarget *= Random.Range(5, 6.5f);
-            centeringTarget = Vector2.Lerp(centeringTarget, newCenteringTarget, 0.5f);
+            Vector3 newCenteringTarget = new Vector3(normalizedTaggedPosition.x * Random.Range(1 - stateMachine.CenteringRandomness, 1 + stateMachine.CenteringRandomness), normalizedTaggedPosition.y * Random.Range(1 - stateMachine.CenteringRandomness, 1 + stateMachine.CenteringRandomness)).normalized;
+            newCenteringTarget *= Random.Range(3, 5.5f);
+            centeringTarget = Vector3.Lerp(centeringTarget, newCenteringTarget, 0.5f);
 
             float centeringBias = stateMachine.MaxCenteringBias * Mathf.Clamp((taggedDirection.magnitude - stateMachine.MinCenteringDistance) / stateMachine.MaxCenteringBias, 0, 1);
-            Vector2 centering = (centeringTarget - characterPosition.ConvertTo<Vector2>()).normalized * centeringBias;
+            Vector3 centering = (centeringTarget - characterPosition).normalized * centeringBias;
 
             character.Move(adjustedDirection + avoidance + centering);
         }
     }
 
-    public override void ExitState(StateMachine stateMachine, AIController character)
+    public override void ExitState(StateMachine stateMachine, BaseController character)
     {
 
     }
