@@ -1,55 +1,56 @@
-using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.TextCore.Text;
 
 public class SeekState : BaseState
 {
     private Transform previousNearestCharacter;
 
-    private Vector3 previousPosition;
+    private Vector3 previousTargetPosition;
 
     public override void EnterState(StateMachine stateMachine, BaseController character)
     {
-
+        previousNearestCharacter = null;
     }
 
     public override void UpdateState(StateMachine stateMachine, BaseController character)
     {
+        // State switch condition
         if (!character.Tagged)
         {
             stateMachine.SwitchState(stateMachine.FleeState);
         }
 
+
+        // Find the nearest character and sets as target
         Transform newNearestCharacter = NearestCharacter(character.transform);
 
         Vector3 target = newNearestCharacter.position;
 
-        if(previousNearestCharacter == newNearestCharacter)
+
+        // Attempts to predict the targets movement from the previous frame
+        if(previousNearestCharacter == newNearestCharacter && newNearestCharacter != null)
         {
-            Vector3 predictedDirection = (newNearestCharacter.position - previousPosition).normalized;
+            Vector3 predictedDirection = newNearestCharacter.position - previousTargetPosition;
 
-            float predictionTime = stateMachine.MaxPredictionTime * Mathf.Clamp(Vector3.Distance(newNearestCharacter.position, character.transform.position) / stateMachine.MaxPredictionDistance, 0, 1);
+            float predictionTime = stateMachine.MaxPredictionTime * Mathf.Clamp(predictedDirection.magnitude / stateMachine.MaxPredictionDistance, 0, 1);
 
-            target = newNearestCharacter.position + (predictedDirection * predictionTime);
+            target = newNearestCharacter.position + (predictedDirection.normalized * predictionTime);
         }
 
-        previousNearestCharacter = newNearestCharacter;
-        previousPosition = newNearestCharacter.position;
 
+        // Moves character towards the target
         Vector3 moveDirection = target - character.transform.position;
         character.Move(moveDirection);
+
+
+        // Sets variables for next time
+        previousNearestCharacter = newNearestCharacter;
+        previousTargetPosition = newNearestCharacter.position;
     }
 
-    public override void ExitState(StateMachine stateMachine, BaseController character)
-    {
-
-    }
-
+    // Returns the nearest other character to this character
     private Transform NearestCharacter(Transform thisCharacter)
     {
-        Transform nearest = null;
+        Transform nearestCharacter = null;
 
         float nearestSqrDistance = Mathf.Infinity;
 
@@ -61,13 +62,13 @@ public class SeekState : BaseState
 
                 if (sqrDistance < nearestSqrDistance)
                 {
-                    nearest = otherCharacter;
+                    nearestCharacter = otherCharacter;
 
                     nearestSqrDistance = sqrDistance;
                 }
             }
         }
 
-        return nearest;
+        return nearestCharacter;
     }
 }

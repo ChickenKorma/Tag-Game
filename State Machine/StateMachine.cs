@@ -1,9 +1,10 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class StateMachine : MonoBehaviour
 {
+    private BaseController characterController;
+
+    [Header("States")]
     private BaseState currentState;
 
     private SeekState seekState = new();
@@ -12,7 +13,6 @@ public class StateMachine : MonoBehaviour
     public SeekState SeekState { get { return seekState; } }
     public FleeState FleeState { get { return fleeState; } }
 
-    private BaseController character;
 
     [Header("Raycasts")]
     [SerializeField] private float forwardRaycastLength;
@@ -27,6 +27,9 @@ public class StateMachine : MonoBehaviour
 
     [SerializeField] private LayerMask wallLayer;
 
+    public LayerMask WallLayer { get { return wallLayer; } }
+
+
     [Header("Predictions")]
     [SerializeField] private float maxPredictionTime;
     [SerializeField] private float maxPredictionDistance;
@@ -34,20 +37,22 @@ public class StateMachine : MonoBehaviour
     public float MaxPredictionTime { get { return maxPredictionTime; } }
     public float MaxPredictionDistance { get { return maxPredictionDistance; } }
 
+
     [Header("Wandering")]
     [SerializeField] private float wanderRate;
     [SerializeField] private float maxWanderAngle;
-    [SerializeField] private float changeWanderTime;
+    [SerializeField] private float wanderChangeInterval;
     [SerializeField] private float minWanderChange;
     [SerializeField] private float maxWanderChange;
 
     public float WanderRate { get { return wanderRate; } }
     public float MaxWanderAngle { get { return maxWanderAngle; } }
-    public float ChangeWanderTime { get { return changeWanderTime; } }
+    public float WanderChangeInterval { get { return wanderChangeInterval; } }
     public float MinWanderChange { get { return minWanderChange; } }
     public float MaxWanderChange { get { return maxWanderChange; } }
 
-    [Header("Misc")]
+
+    [Header("Centering")]
     [SerializeField] private float maxCenteringBias;
     [SerializeField] private float maxCenteringDistance;
     [SerializeField] private float minCenteringDistance;
@@ -58,28 +63,28 @@ public class StateMachine : MonoBehaviour
     public float MinCenteringDistance { get { return minCenteringDistance; } }
     public float CenteringRandomness { get { return centeringRandomness; } }
 
-    public LayerMask WallLayer { get { return wallLayer; } }
 
-    void Start()
+    private void Awake()
     {
-        character = GetComponent<BaseController>();
+        characterController = GetComponent<BaseController>();
+    }
 
+    private void Start()
+    {
         currentState = fleeState;
-        currentState.EnterState(this, character);
+        currentState.EnterState(this, characterController);
     }
 
-    void Update()
+    private void FixedUpdate()
     {
-        currentState.UpdateState(this, character);
+        currentState.UpdateState(this, characterController);
     }
 
-    // Sets current state to the new state, calling the exit and enter states accordingly
+    // Switches to the new state
     public void SwitchState(BaseState newState)
     {
-        currentState.ExitState(this, character);
-
         currentState = newState;
 
-        currentState.EnterState(this, character);
+        currentState.EnterState(this, characterController);
     }
 }

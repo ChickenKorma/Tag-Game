@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -9,21 +8,24 @@ public class GameManager : MonoBehaviour
 
     public static Action<Transform> gameEndEvent;
 
-    private Transform tagged;
 
-    public Transform Tagged { get { return tagged; } set { tagged = value; } }
+    [Header("Characters")]
+    [SerializeField] private GameObject characterPrefab;
 
-    [SerializeField] private GameObject characterPrefab; 
-
-    [SerializeField] private int totalCharacters;
-
-    [SerializeField] private Vector2 spawnArea;
-
-    [SerializeField] private float tagPickTime;
-
-    [SerializeField] private List<Transform> remainingCharacters = new();  
+    private List<Transform> remainingCharacters = new();
 
     public List<Transform> RemainingCharacters { get { return remainingCharacters; } }
+
+    private Transform taggedCharacter;
+
+    public Transform TaggedCharacter { get { return taggedCharacter; } set { taggedCharacter = value; } }
+
+
+    [Header("Game Settings")]
+    [SerializeField] private Vector2 spawnArea;
+
+    [SerializeField] private int aiCharacters;
+    
 
     private void Awake()
     {
@@ -36,43 +38,53 @@ public class GameManager : MonoBehaviour
             Instance = this;
         }
 
-        remainingCharacters.Add(PlayerController.Instance.transform);
-
         SpawnCharacters();
+    }
 
+    private void Start()
+    {
         PickTagged();
     }
 
-    // Spawns total number of characters at random but unique positions, adding them to remaining and visible character lists
+    // Spawns total number of ai characters at random but unique positions, adding them to remainingCharacters
     private void SpawnCharacters()
     {
-        List<Vector2> spawnPoints = new();
+        Transform player = PlayerController.Instance.transform;
+        remainingCharacters.Add(player);
 
-        spawnPoints.Add(PlayerController.Instance.transform.position);
+        List<Vector2> usedSpawnPoints = new();
+        usedSpawnPoints.Add(player.position);
 
-        for (int i = 0; i < totalCharacters; i++)
+        for (int i = 0; i < aiCharacters; i++)
         {
-            Vector2 spawnPoint = new Vector2(UnityEngine.Random.Range(-spawnArea.x, spawnArea.x), UnityEngine.Random.Range(-spawnArea.y, spawnArea.y));
+            Vector2 spawnPoint = RandomSpawnPoint();
 
-            while(!SpawnPointValid(spawnPoint, spawnPoints))
+            while(!SpawnPointValid(spawnPoint, usedSpawnPoints))
             {
-                spawnPoint = new Vector2(UnityEngine.Random.Range(-spawnArea.x, spawnArea.x), UnityEngine.Random.Range(-spawnArea.y, spawnArea.y));
+                spawnPoint = RandomSpawnPoint();
             }
 
-            spawnPoints.Add(spawnPoint);
+            usedSpawnPoints.Add(spawnPoint);
 
             Transform spawnedCharacter = Instantiate(characterPrefab, spawnPoint, Quaternion.identity).transform;
+            spawnedCharacter.name = (i + 1).ToString();
 
             remainingCharacters.Add(spawnedCharacter);
         }
     }
 
+    // Returns a random spawn point within game bounds
+    private Vector2 RandomSpawnPoint()
+    {
+        return new Vector2(UnityEngine.Random.Range(-spawnArea.x, spawnArea.x), UnityEngine.Random.Range(-spawnArea.y, spawnArea.y));
+    }
+
     // Returns whether the potential spawn point is too close to a previous spawn point
-    private bool SpawnPointValid(Vector2 potentialPoint, List<Vector2> currentSpawnPoints)
+    private bool SpawnPointValid(Vector2 potentialSpawnPoint, List<Vector2> currentSpawnPoints)
     {
         foreach(Vector2 spawnPoint in currentSpawnPoints)
         {
-            if(Vector3.SqrMagnitude(spawnPoint - potentialPoint) < 1)
+            if(Vector3.SqrMagnitude(spawnPoint - potentialSpawnPoint) < 1)
             {
                 return false;
             }
@@ -81,8 +93,8 @@ public class GameManager : MonoBehaviour
         return true;
     }
 
-    // Removes character from remaining and visible character lists
-    public void KillCharacter(Transform character)
+    // Removes character from remainingCharacters, checks if the game should end
+    public void RemoveCharacter(Transform character)
     {
         remainingCharacters.Remove(character);
 
@@ -96,11 +108,11 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // Randomly picks the next tagged character from the remaining characters list
+    // Randomly picks a tagged character from the remainingCharacters
     private void PickTagged()
     {
-        int chosenIndex = UnityEngine.Random.Range(0, remainingCharacters.Count);
+        int randomIndex = UnityEngine.Random.Range(0, remainingCharacters.Count);
 
-        remainingCharacters[chosenIndex].GetComponent<BaseController>().Tag(tagPickTime);
+        remainingCharacters[randomIndex].GetComponent<BaseController>().Tag();
     }
 }

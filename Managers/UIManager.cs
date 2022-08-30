@@ -1,19 +1,19 @@
-using System.Collections;
-using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
+using TMPro;
 using UnityEngine.SceneManagement;
 
 public class UIManager : MonoBehaviour
 {
     public static UIManager Instance;
 
-    [SerializeField] private Canvas gameEnd;
-    [SerializeField] private Canvas gameplay;
+    [SerializeField] private GameObject characterInfoPrefab;
 
-    [SerializeField] private TextMeshProUGUI winText;
+    [SerializeField] private Transform gameUI;
+    [SerializeField] private GameObject menuUI;
 
-    [SerializeField] private GameObject healthbarPrefab;
+    [SerializeField] private TMP_Text winText;
+
+    private AudioSource buttonPress;
 
     private void OnEnable()
     {
@@ -35,39 +35,51 @@ public class UIManager : MonoBehaviour
         {
             Instance = this;
         }
+
+        buttonPress = GetComponent<AudioSource>();
+
+        winText = menuUI.GetComponentInChildren<TMP_Text>();
     }
 
     private void Start()
     {
-        gameEnd.enabled = false;
+        menuUI.SetActive(false);
 
-        GenerateHealthbars();
+        GenerateCharacterInfo();
     }
 
-    private void GenerateHealthbars()
+    // Instantiates and sets up a character info prefab for each character
+    private void GenerateCharacterInfo()
     {
         foreach(Transform character in GameManager.Instance.RemainingCharacters)
         {
-            Healthbar healthbar = Instantiate(healthbarPrefab, gameplay.transform).transform.GetComponent<Healthbar>();
+            CharacterInfo characterInfo = Instantiate(characterInfoPrefab, gameUI).transform.GetComponent<CharacterInfo>();
 
-            healthbar.CharacterTransform = character;
+            characterInfo.CharacterTransform = character;
         }
     }
 
+    // Displays game over screen and the winning character's name
     private void GameEnd(Transform winner)
     {
-        gameEnd.enabled = true;
+        menuUI.SetActive(true);
 
         winText.text = "Winner: " + winner.name;
     }
 
+    // Plays button press sound and reloads level scene
     public void RestartGame()
     {
+        buttonPress.Play();
+
         SceneManager.LoadScene(1);
     }
 
+    // Plays button press sound and loads/switches to menu scene
     public void MainMenu()
     {
+        buttonPress.Play();
+
         SceneManager.LoadScene(0);
     }
 }
