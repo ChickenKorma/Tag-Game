@@ -1,12 +1,10 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerController : BaseController
 {
     public static PlayerController Instance;
 
-    private PlayerInputActions playerInputActions;
+    private Vector2 moveInput;
 
     protected override void Awake()
     {
@@ -26,19 +24,25 @@ public class PlayerController : BaseController
     {
         base.OnEnable();
 
-        playerInputActions = new PlayerInputActions();
-        playerInputActions.Enable();
+        InputManager.moveEvent += OnMoveInput;
     }
 
     void FixedUpdate()
     {
-        Move(playerInputActions.Gameplay.Move.ReadValue<Vector2>());
+        Move(moveInput);
     }
 
     protected override void OnDisable()
     {
         base.OnDisable();
 
-        playerInputActions.Disable();
+        InputManager.moveEvent -= OnMoveInput;
     }
+
+    private void OnDestroy()
+    {
+        InputManager.moveEvent -= OnMoveInput;
+    }
+
+    private void OnMoveInput(Vector2 input) => moveInput = input;
 }
